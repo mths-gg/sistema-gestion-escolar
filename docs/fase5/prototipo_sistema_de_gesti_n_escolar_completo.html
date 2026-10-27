@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Escolar - Prototipo Fase 5</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos modernos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <!-- 1. PANTALLA DE LOGIN -->
+    <div id="login-screen" class="flex h-screen w-full">
+        <!-- Panel Izquierdo Decorativo -->
+        <div class="hidden lg:flex lg:w-1/2 bg-indigo-600 text-white flex-col justify-between p-12 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-700 to-indigo-900 opacity-90"></div>
+            <div class="relative z-10">
+                <span class="bg-indigo-500 text-indigo-100 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">SENA - ADSO</span>
+            </div>
+            <div class="relative z-10 my-auto">
+                <h1 class="text-4xl font-extrabold tracking-tight mb-4">Sistema de Gestión Escolar</h1>
+                <p class="text-indigo-200 text-lg max-w-md">Plataforma integral para la administración académica, control de notas, matrículas y seguimiento docente bajo estrictas normas de seguridad.</p>
+            </div>
+            <div class="relative z-10 text-xs text-indigo-300">
+                &copy; 2026 - Proyecto Integrador Fases 1 a 5
+            </div>
+        </div>
+
+        <!-- Panel Derecho - Formulario -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+            <div class="max-w-md w-full">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-4 text-2xl font-bold">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Iniciar Sesión</h2>
+                    <p class="text-sm text-gray-500 mt-1">Ingrese sus credenciales para acceder al sistema</p>
+                </div>
+
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-envelope"></i></span>
+                            <input type="email" id="login-email" required class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" placeholder="toro@sena.edu.co">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" id="login-password" required class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Rol de Usuario</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-user-shield"></i></span>
+                            <select id="login-role" class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white">
+                                <option value="Administrador">Administrador</option>
+                                <option value="Profesor">Profesor / Docente</option>
+                                <option value="Estudiante">Estudiante (Solo Lectura)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2.5 rounded-lg shadow-md transition duration-200">
+                        Acceder al Sistema
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 2. APLICACIÓN PRINCIPAL (DASHBOARD & MÓDULOS) -->
+    <div id="app-screen" class="hidden h-screen flex overflow-hidden">
+        
+        <!-- SIDEBAR DE NAVEGACIÓN -->
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between hidden md:flex">
+            <div>
+                <div class="p-5 flex items-center space-x-3 border-b border-slate-800">
+                    <div class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fa-solid fa-school"></i></div>
+                    <span class="font-bold text-lg text-white tracking-wide">SGE - SENA</span>
+                </div>
+                <nav class="p-4 space-y-1">
+                    <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-medium transition"><i class="fa-solid fa-chart-pie w-5"></i><span>Dashboard</span></a>
+                    <a href="#" onclick="switchTab('estudiantes')" id="nav-estudiantes" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-users w-5"></i><span>Estudiantes</span></a>
+                    <a href="#" onclick="switchTab('profesores')" id="nav-profesores" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-chalkboard-user w-5"></i><span>Profesores</span></a>
+                    <a href="#" onclick="switchTab('cursos')" id="nav-cursos" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-book-open w-5"></i><span>Cursos</span></a>
+                    <a href="#" onclick="switchTab('matriculas')" id="nav-matriculas" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-file-signature w-5"></i><span>Matrículas</span></a>
+                    <a href="#" onclick="switchTab('calificaciones')" id="nav-calificaciones" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-star-half-stroke w-5"></i><span>Calificaciones</span></a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="handleLogout()" class="w-full flex items-center justify-center space-x-2 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white py-2 rounded-lg transition"><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar Sesión</span></button>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <!-- Header Superior -->
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-10">
+                <div class="flex items-center space-x-4">
+                    <h3 id="page-title" class="text-xl font-bold text-gray-800">Dashboard General</h3>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p id="user-display-name" class="text-sm font-semibold text-gray-900">David Toro</p>
+                        <p id="user-display-role" class="text-xs text-indigo-600 font-medium">Administrador</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-300">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Vistas Dinámicas (Scrollables) -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+                
+                <!-- VISTA: DASHBOARD -->
+                <section id="view-dashboard" class="space-y-6">
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-2xl p-6 text-white shadow-lg flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-2">¡Bienvenido al Sistema de Gestión Escolar!</h2>
+                            <p class="text-indigo-100 text-sm max-w-xl">Desde aquí puedes supervisar el rendimiento institucional, verificar registros y coordinar las actividades de estudiantes y docentes.</p>
+                        </div>
+                        <div class="hidden sm:block text-6xl opacity-20"><i class="fa-solid fa-shield-halved"></i></div>
+                    </div>
+
+                    <!-- Tarjetas de Métricas -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl"><i class="fa-solid fa-users"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase">Total Estudiantes</p>
+                                <h4 class="text-2xl font-bold text-gray-800">324</h4>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"><i class="fa-solid fa-chalkboard-user"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase">Docentes Activos</p>
+                                <h4 class="text-2xl font-bold text-gray-800">28</h4>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl"><i class="fa-solid fa-book"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase">Cursos Abiertos</p>
+                                <h4 class="text-2xl font-bold text-gray-800">14</h4>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xl"><i class="fa-solid fa-file-signature"></i></div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase">Matrículas</p>
+                                <h4 class="text-2xl font-bold text-gray-800">310</h4>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA: ESTUDIANTES -->
+                <section id="view-estudiantes" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800">Listado de Estudiantes</h2>
+                        <!-- Botón ocultable si es Estudiante -->
+                        <button id="btn-nuevo-estudiante" onclick="openModal('modal-estudiante')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Nuevo Estudiante</span>
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="p-4">ID</th>
+                                    <th class="p-4">Nombre Completo</th>
+                                    <th class="p-4">Documento</th>
+                                    <th class="p-4">Correo Institucional</th>
+                                    <th class="p-4">Teléfono</th>
+                                    <th class="p-4">Estado</th>
+                                    <th class="p-4 text-center col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-estudiantes" class="divide-y divide-gray-200 text-sm text-gray-700">
+                                <tr>
+                                    <td class="p-4 font-medium">1</td>
+                                    <td class="p-4">David Mauricio Toro</td>
+                                    <td class="p-4">1085123456</td>
+                                    <td class="p-4">dmtoro@sena.edu.co</td>
+                                    <td class="p-4">3104567890</td>
+                                    <td class="p-4"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">Activo</span></td>
+                                    <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-eye"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4 font-medium">2</td>
+                                    <td class="p-4">Fawketh Companero</td>
+                                    <td class="p-4">1085987654</td>
+                                    <td class="p-4">fawketh@sena.edu.co</td>
+                                    <td class="p-4">3201234567</td>
+                                    <td class="p-4"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">Activo</span></td>
+                                    <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-eye"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA: PROFESORES -->
+                <section id="view-profesores" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800">Plantel Docente</h2>
+                        <button id="btn-nuevo-profesor" onclick="openModal('modal-profesor')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Nuevo Profesor</span>
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="p-4">ID</th>
+                                    <th class="p-4">Nombre del Docente</th>
+                                    <th class="p-4">Especialidad</th>
+                                    <th class="p-4">Correo Electrónico</th>
+                                    <th class="p-4 text-center col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                                <tr>
+                                    <td class="p-4 font-medium">101</td>
+                                    <td class="p-4">Ing. Carlos Pérez</td>
+                                    <td class="p-4">Análisis y Desarrollo de Software</td>
+                                    <td class="p-4">cperez@sena.edu.co</td>
+                                    <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA: CURSOS -->
+                <section id="view-cursos" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800">Cursos Programados</h2>
+                        <button id="btn-nuevo-curso" onclick="openModal('modal-curso')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Nuevo Curso</span>
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="p-4">Código</th>
+                                    <th class="p-4">Nombre del Curso</th>
+                                    <th class="p-4">Créditos</th>
+                                    <th class="p-4">Cupos Máximos</th>
+                                    <th class="p-4 text-center col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                                <tr>
+                                    <td class="p-4 font-medium">ADSO-2882341</td>
+                                    <td class="p-4">Programación de Software Backend (Java)</td>
+                                    <td class="p-4">4</td>
+                                    <td class="p-4">35</td>
+                                    <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA: MATRÍCULAS -->
+                <section id="view-matriculas" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800">Control de Matrículas</h2>
+                        <button id="btn-nueva-matricula" onclick="openModal('modal-matricula')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Nueva Matrícula</span>
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="p-4">ID Matrícula</th>
+                                    <th class="p-4">Estudiante</th>
+                                    <th class="p-4">Curso Asignado</th>
+                                    <th class="p-4">Fecha de Registro</th>
+                                    <th class="p-4 text-center col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                                <tr>
+                                    <td class="p-4 font-medium">#M-001</td>
+                                    <td class="p-4">David Mauricio Toro</td>
+                                    <td class="p-4">Programación de Software Backend (Java)</td>
+                                    <td class="p-4">2026-02-15</td>
+                                    <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-trash"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTA: CALIFICACIONES -->
+                <section id="view-calificaciones" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800">Registro de Calificaciones</h2>
+                        <button id="btn-nueva-calificacion" onclick="openModal('modal-calificacion')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Registrar Nota</span>
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="p-4">Estudiante</th>
+                                    <th class="p-4">Curso</th>
+                                    <th class="p-4">Nota Final</th>
+                                    <th class="p-4">Resultado</th>
+                                    <th class="p-4 text-center col-acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                                <tr>
+                                    <td class="p-4 font-medium">David Mauricio Toro</td>
+                                    <td class="p-4">Programación de Software Backend (Java)</td>
+                                    <td class="p-4 font-bold text-emerald-600">4.8</td>
+                                    <td class="p-4"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">Aprobado</span></td>
+                                    <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO ESTUDIANTE -->
+    <div id="modal-estudiante" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Registrar Nuevo Estudiante</h3>
+            <form onsubmit="addEstudiante(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre Completo</label>
+                    <input type="text" id="est-nombre" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Documento de Identidad</label>
+                    <input type="text" id="est-doc" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Correo Electrónico</label>
+                    <input type="email" id="est-email" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Teléfono</label>
+                    <input type="text" id="est-tel" required class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-estudiante')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg">Guardar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- SCRIPT DE CONTROL E INTERACTIVIDAD -->
+    <script>
+        let currentUserRole = "Administrador";
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const roleSelect = document.getElementById('login-role').value;
+            currentUserRole = roleSelect;
+
+            // Actualizar datos en header
+            document.getElementById('user-display-name').innerText = email.split('@')[0].toUpperCase();
+            document.getElementById('user-display-role').innerText = currentUserRole;
+
+            // Ocultar login y mostrar app
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+
+            // Aplicar restricciones de rol (Estudiante = Solo Lectura estricta)
+            applyRoleRestrictions();
+
+            showToast("Bienvenido al sistema con rol: " + currentUserRole, "success");
+        }
+
+        function applyRoleRestrictions() {
+            const actionButtons = document.querySelectorAll('.col-acciones, #btn-nuevo-estudiante, #btn-nuevo-profesor, #btn-nuevo-curso, #btn-nueva-matricula, #btn-nueva-calificacion');
+            
+            if (currentUserRole === 'Estudiante') {
+                actionButtons.forEach(el => el.classList.add('hidden'));
+            } else {
+                actionButtons.forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-form').reset();
+            showToast("Sesión cerrada correctamente", "info");
+        }
+
+        function switchTab(tabId) {
+            const views = ['dashboard', 'estudiantes', 'profesores', 'cursos', 'matriculas', 'calificaciones'];
+            views.forEach(v => {
+                document.getElementById('view-' + v).classList.add('hidden');
+                const navBtn = document.getElementById('nav-' + v);
+                if(navBtn) {
+                    navBtn.classList.remove('bg-indigo-600', 'text-white');
+                    navBtn.classList.add('hover:bg-slate-800', 'hover:text-white');
+                }
+            });
+
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white');
+                activeBtn.classList.remove('hover:bg-slate-800');
+            }
+
+            // Cambiar título del header
+            const titles = {
+                'dashboard': 'Dashboard General',
+                'estudiantes': 'Gestión de Estudiantes',
+                'profesores': 'Plantel Docente',
+                'cursos': 'Cursos Programados',
+                'matriculas': 'Control de Matrículas',
+                'calificaciones': 'Registro de Calificaciones'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+        }
+
+        function openModal(modalId) {
+            if (currentUserRole === 'Estudiante') {
+                showToast("Acceso denegado: Los estudiantes no tienen permisos de escritura.", "error");
+                return;
+            }
+            document.getElementById(modalId).classList.remove('hidden');
+            document.getElementById(modalId).classList.add('flex');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.getElementById(modalId).classList.remove('flex');
+        }
+
+        function addEstudiante(event) {
+            event.preventDefault();
+            const nombre = document.getElementById('est-nombre').value;
+            const doc = document.getElementById('est-doc').value;
+            const email = document.getElementById('est-email').value;
+            const tel = document.getElementById('est-tel').value;
+
+            const tbody = document.getElementById('table-estudiantes');
+            const newRow = document.createElement('tr');
+            const newId = tbody.rows.length + 1;
+
+            newRow.innerHTML = `
+                <td class="p-4 font-medium">${newId}</td>
+                <td class="p-4">${nombre}</td>
+                <td class="p-4">${doc}</td>
+                <td class="p-4">${email}</td>
+                <td class="p-4">${tel}</td>
+                <td class="p-4"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">Activo</span></td>
+                <td class="p-4 text-center col-acciones"><button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-eye"></i></button></td>
+            `;
+            tbody.appendChild(newRow);
+
+            closeModal('modal-estudiante');
+            event.target.reset();
+            showToast("Estudiante registrado exitosamente", "success");
+            applyRoleRestrictions();
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgColors = 'bg-emerald-600';
+            if(type === 'error') bgColors = 'bg-rose-600';
+            if(type === 'info') bgColors = 'bg-blue-600';
+
+            toast.className = `${bgColors} text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition transform translate-y-2 opacity-0 duration-300 flex items-center space-x-2`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
